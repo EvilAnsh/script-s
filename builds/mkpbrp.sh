@@ -16,7 +16,7 @@ fi
 msgtoeditid=$(
     "$binpath/send_message.sh" \
         "$chid" \
-        "Building PBRP for $DEVICE\nProgress: Build system initialization in progress" \
+        "Building PBRP for $DEVICE\nProgress: --% (Build system initialization in progress)" \
         | grep 'ID' \
         | cut -d] -f2 \
         | tr -d '[:space:]' \
@@ -40,27 +40,27 @@ progress() {
 
 editmsg() {
     [[ "$*" =~ "--no-proginsert" ]] && local no_proginsert=true
-    if [[ $NEED_EDIT == true ]]; then
-        if [ -z "$1" ]; then
-            "$binpath/edit_message.sh" "$chid" \
-                "$msgtoeditid" \
+    [[ "$*" =~ "--edit-prog" ]] && local edit_prog=true
+    [[ "$*" =~ "--cust-prog" ]] && local cust_prog=true
+    if [[ $edit_prog == true ]]; then
+        if [[ $NEED_EDIT == true ]]; then
+            "$BINPATH/edit_message.sh" "$CHID" \
+                "$MSGTOEDITID" \
                 "Building PBRP for $DEVICE\nProgress: $BUILD_PROGRESS"
-        else
-            if [[ $no_proginsert == true ]]; then
-                "$binpath/edit_message.sh" "$chid" \
-                    "$msgtoeditid" \
-                    "$1"
-            else
-                "$binpath/edit_message.sh" "$chid" \
-                    "$msgtoeditid" \
-                    "$1\nProgress: $BUILD_PROGRESS"
-            fi
         fi
+    elif [[ $cust_prog == true ]]; then
+        "$BINPATH/edit_message.sh" "$CHID" \
+            "$MSGTOEDITID" \
+            "Building PBRP for $DEVICE\nprogress: $1"
+    elif [[ $no_proginsert == true ]]; then
+        "$BINPATH/edit_message.sh" "$CHID" \
+            "$MSGTOEDITID" \
+            "$1"
     fi
 }
 
 fail() {
-    editmsg "$1"
+    editmsg "$1" --cust-prog
     exit 1
 }
 
@@ -74,7 +74,7 @@ inttrap() {
 
 trap inttrap SIGINT
 
-editmsg "Updating device tree"
+editmsg "--% (Updating device tree)" --cust-prog
 cd device/realme/$DEVICE || exit 1
 git pull || git pull --rebase || git rebase --abort; git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
 
@@ -90,12 +90,12 @@ fi
 
 until [ -z "$(jobs -r)" ]; do
     progress
-    editmsg
+    editmsg --edit-prog
     sleep 5
 done
 
 progress
-editmsg
+editmsg --edit-prog
 
 
 msgtoeditid=$(
