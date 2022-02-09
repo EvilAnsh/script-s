@@ -61,7 +61,7 @@ fail() {
 
 editmsg "Updating device tree"
 cd device/realme/$DEVICE || exit 1
-git pull || git pull --rebase || git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
+git pull || git pull --rebase || git rebase --abort; git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
 cd "$pbrp_root" || exit 1
 
 until [ -z "$(jobs -r)" ]; do

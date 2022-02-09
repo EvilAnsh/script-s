@@ -74,7 +74,7 @@ trap inttrap SIGINT
 
 cd "$ROOT" || exit 1
 cd "device/realme/$DEVICE" || exit 1
-git pull --rebase || git pull || git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
+git pull --rebase || git rebase --abort; git pull || git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
 
 cd "$ROOT" || exit 1
 
