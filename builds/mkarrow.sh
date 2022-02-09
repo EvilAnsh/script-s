@@ -9,6 +9,8 @@ if [[ $1 == gapps ]]; then
 fi
 if [[ "$*" =~ "--sync" ]]; then
     NEED_SYNC=true
+elif [[ "$*" =~ "--fsync" ]]; then
+    NEED_FSYNC=true
 fi
 MSGTOEDITID=$(
     "$BINPATH/send_message.sh" \
@@ -77,6 +79,9 @@ git pull --rebase || git pull || git reset --hard HEAD~5; git pull || fail "Fail
 cd "$ROOT" || exit 1
 
 if [[ $NEED_SYNC == true ]]; then
+    editmsg "--% (Syncing with repo sync)" --cust-prog
+    repo sync
+elif [[ $NEED_FSYNC == true ]]; then
     editmsg "--% (Syncing with repo sync --force-sync)" --cust-prog
     repo sync --force-sync
 fi
