@@ -1,13 +1,18 @@
 #!/bin/bash
+binpath=$HOME/github-repo/mybot/telegram-bot-bash/bin
+chid=-1001664444944
+pbrp_root=$HOME/pbrp/pbrp
 if [[ $1 == RMX2151 || $1 == RMX2001 ]]; then
     DEVICE=$1
 else
     echo "Invalid device"
     exit 1
 fi
-binpath=$HOME/github-repo/mybot/telegram-bot-bash/bin
-chid=-1001664444944
-pbrp_root=$HOME/pbrp/pbrp
+if [[ "$*" =~ "--sync" ]]; then
+    NEED_SYNC=true
+elif [[ "$*" =~ "--fsync" ]]; then
+    NEED_FSYNC=true
+fi
 msgtoeditid=$(
     "$binpath/send_message.sh" \
         "$chid" \
@@ -72,7 +77,16 @@ trap inttrap SIGINT
 editmsg "Updating device tree"
 cd device/realme/$DEVICE || exit 1
 git pull || git pull --rebase || git rebase --abort; git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
+
 cd "$pbrp_root" || exit 1
+
+if [[ $NEED_SYNC == true ]]; then
+    editmsg "--% (Syncing with repo sync)" --cust-prog
+    repo sync
+elif [[ $NEED_FSYNC == true ]]; then
+    editmsg "--% (Syncing with repo sync --force-sync)" --cust-prog
+    repo sync --force-sync
+fi
 
 until [ -z "$(jobs -r)" ]; do
     progress
