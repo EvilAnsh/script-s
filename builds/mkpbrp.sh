@@ -59,6 +59,16 @@ fail() {
     exit 1
 }
 
+inttrap() {
+    kill -s SIGINT "$(jobs -p | tr -d '[:space:]' | tr -d '\n')"
+    # Wait for the job to exit by sigint
+    editmsg "Build failed, SIGINT received" --cust-prog
+    wait
+    exit
+}
+
+trap inttrap SIGINT
+
 editmsg "Updating device tree"
 cd device/realme/$DEVICE || exit 1
 git pull || git pull --rebase || git rebase --abort; git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
