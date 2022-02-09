@@ -86,6 +86,9 @@ elif [[ $NEED_FSYNC == true ]]; then
     repo sync --force-sync
 fi
 
+editmsg "--% (Purging zips)" --cust-prog
+rm -f $ROOT/out/target/product/$DEVICE/*.zip
+
 editmsg "--% (Initialising build system)" --cust-prog
 source build/envsetup.sh
 build_start=$(date +%s)
@@ -118,7 +121,7 @@ MSGTOEDITID=$(
         | tr -d '[:space:]' \
         | sed 's/"//g'
 )
-link=$(transfer wet --silent /mnt/arrow/out/target/product/$DEVICE/*.zip)
+link=$(transfer wet --silent $ROOT/out/target/product/$DEVICE/*.zip)
 # transfer wet /home/azureuser/pbrp/pbrp/out/target/product/RMX2151/PBRP-RMX2151-3.1.0-20220207-0422-UNOFFICIAL.zip 2>&1 | grep 'we.tl' | cut -d: -f3
 # //we.tl/t-UcrCXiVVnP
 editmsg "Done\nDownload link: $link" --no-proginsert
