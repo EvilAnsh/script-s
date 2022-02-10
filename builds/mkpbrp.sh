@@ -1,7 +1,7 @@
 #!/bin/bash
-binpath=$HOME/github-repo/mybot/telegram-bot-bash/bin
-chid=-1001664444944
-pbrp_root=$HOME/pbrp/pbrp
+BINPATH=$HOME/github-repo/mybot/telegram-bot-bash/bin
+CHID=-1001664444944
+PBRP_ROOT=$HOME/pbrp/pbrp
 if [[ $1 == RMX2151 || $1 == RMX2001 ]]; then
     DEVICE=$1
 else
@@ -13,20 +13,15 @@ if [[ "$*" =~ "--sync" ]]; then
 elif [[ "$*" =~ "--fsync" ]]; then
     NEED_FSYNC=true
 fi
-msgtoeditid=$(
-    "$binpath/send_message.sh" \
-        "$chid" \
-        "Building PBRP for $DEVICE\nProgress: --% (Build system initialization in progress)" \
+MSGTOEDITID=$(
+    "$BINPATH/send_message.sh" \
+        "$CHID" \
+        "Building PBRP for $DEVICE\nProgress: --% (Updating device tree)" \
         | grep 'ID' \
         | cut -d] -f2 \
         | tr -d '[:space:]' \
         | sed 's/"//g'
 )
-
-cd "$pbrp_root" || exit 1
-source build/envsetup.sh
-lunch "omni_$DEVICE-eng"
-mka pbrp 2>&1 | tee "$HOME/build_$DEVICE.log" &
 
 progress() {
     BUILD_PROGRESS=$(
@@ -74,12 +69,11 @@ inttrap() {
 
 trap inttrap SIGINT
 
-editmsg "--% (Updating device tree)" --cust-prog
-cd device/realme/$DEVICE || exit 1
+cd "$PBRP_ROOT" || exit 1
+cd "device/realme/$DEVICE" || exit 1
 git pull || git pull --rebase || git rebase --abort; git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
 
-cd "$pbrp_root" || exit 1
-
+cd "$PBRP_ROOT" || exit 1
 if [[ $NEED_SYNC == true ]]; then
     editmsg "--% (Syncing with repo sync)" --cust-prog
     repo sync
@@ -87,6 +81,11 @@ elif [[ $NEED_FSYNC == true ]]; then
     editmsg "--% (Syncing with repo sync --force-sync)" --cust-prog
     repo sync --force-sync
 fi
+
+editmsg "--% (Build system initialization in progress)" --cust-prog
+source build/envsetup.sh
+lunch "omni_$DEVICE-eng"
+mka pbrp 2>&1 | tee "$HOME/build_$DEVICE.log" &
 
 until [ -z "$(jobs -r)" ]; do
     progress
@@ -98,16 +97,16 @@ progress
 editmsg --edit-prog
 
 
-msgtoeditid=$(
-    "$binpath/send_message.sh" \
-        "$chid" \
+MSGTOEDITID=$(
+    "$BINPATH/send_message.sh" \
+        "$CHID" \
         "Uploading recovery image" \
         | grep 'ID' \
         | cut -d] -f2 \
         | tr -d '[:space:]' \
         | sed 's/"//g'
 )
-link=$(
+LINK=$(
     transfer wet --silent "$(
         grep 'Flashable Zip' "$HOME/build_$DEVICE.log" \
         | cut -d: -f2 \
@@ -116,5 +115,5 @@ link=$(
 )
 # transfer wet /home/azureuser/pbrp/pbrp/out/target/product/RMX2151/PBRP-RMX2151-3.1.0-20220207-0422-UNOFFICIAL.zip 2>&1 | grep 'we.tl' | cut -d: -f3
 # //we.tl/t-UcrCXiVVnP
-editmsg "Done\nDownload link: $link" --no-proginsert
+editmsg "Done\nDownload link: $LINK" --no-proginsert
 exit 0
