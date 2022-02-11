@@ -59,6 +59,7 @@ editmsg() {
 
 fail() {
     editmsg "$1" --cust-prog
+    unlock
     exit 1
 }
 
@@ -69,6 +70,13 @@ inttrap() {
     wait
     exit
 }
+
+# Check if there's a build in progress
+source utils.sh
+check_lock
+
+# Prevent the script from running multiple times
+lock
 
 trap inttrap SIGINT
 
@@ -125,4 +133,8 @@ link=$(transfer wet --silent $ROOT/out/target/product/$DEVICE/*.zip)
 # transfer wet /home/azureuser/pbrp/pbrp/out/target/product/RMX2151/PBRP-RMX2151-3.1.0-20220207-0422-UNOFFICIAL.zip 2>&1 | grep 'we.tl' | cut -d: -f3
 # //we.tl/t-UcrCXiVVnP
 editmsg "Done\nDownload link: $link" --no-proginsert
+
+# Remove the lock
+unlock
+
 exit 0
