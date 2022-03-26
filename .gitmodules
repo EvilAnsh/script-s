@@ -1,0 +1,3 @@
+[submodule "komaru/tgbot-fish"]
+	path = komaru/tgbot-fish
+	url = https://github.com/Hakimi0804/tgbot-fish
