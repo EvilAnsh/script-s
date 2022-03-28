@@ -157,9 +157,7 @@ string repeat -n$COLUMNS '-'
 set_color normal
 echo "Total komaru GIFs after deduplication: $(count $komaru_count)"
 echo "Grand total of komaru GIFs now: $(count $komaru_id)"
-echo "Writing these to file..."
-write_file
-echo "Updating gist"
-update_gist
 echo "Finishing update id processing, this may take a while"
 wait
+erase null >/dev/null
+echo "Removing null"
