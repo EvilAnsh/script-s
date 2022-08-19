@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pacman -Syyu
+
 if [ ! -f util.sh ]; then
 	curl -sLo util.sh https://raw.githubusercontent.com/Hakimi0804/scripts/06909257a90046e8f933e754c2edfa3d161fd95f/builds/util.sh
 fi
