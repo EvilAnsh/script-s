@@ -1,6 +1,8 @@
 #!/bin/bash
 
-pacman -Syyu
+apt-get -y update
+apt-get -y upgrade
+apt-get -y install bc build-essential zip curl libstdc++6 git wget python gcc clang libssl-dev repo rsync flex bison aria2
 
 if [ ! -f util.sh ]; then
 	curl -sLo util.sh https://raw.githubusercontent.com/Hakimi0804/scripts/06909257a90046e8f933e754c2edfa3d161fd95f/builds/util.sh
@@ -8,7 +10,8 @@ fi
 
 source util.sh
 
-CHAT_ID=-1001299514785
+# CHAT_ID=-1001299514785
+CHAT_ID=-1001155763792
 
 tg --sendmsg "$CHAT_ID" "Script started"
 
