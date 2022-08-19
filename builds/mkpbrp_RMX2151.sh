@@ -52,6 +52,8 @@ fail() {
 }
 
 tg --editmsg "$CHAT_ID" "$SENT_MSG_ID" "${MSG_TITLE}Progress: --% (Build system initialization)"
+
+export RMX2151_BUILD=true
 source build/envsetup.sh || fail
 lunch "omni_$DEVICE-eng" || fail
 mka pbrp 2>&1 | tee "build_$DEVICE.log" || fail &
