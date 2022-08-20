@@ -9,8 +9,8 @@ fi
 
 source util.sh
 
-# CHAT_ID=-1001299514785
-CHAT_ID=-1001155763792
+CHAT_ID=-1001299514785
+# CHAT_ID=-1001155763792
 
 tg --sendmsg "$CHAT_ID" "Script started"
 
