@@ -24,11 +24,11 @@ MSG_TITLE=$'Building PBRP for realme 7/n20p\n'
 
 tg --editmsg "$CHAT_ID" "$SENT_MSG_ID" "${MSG_TITLE}Progress: --% (Repo syncing)"
 
-repo init -u $MANIFEST -b $MANIFEST_BRANCH --depth=1 --groups=all,-notdefault,-device,-darwin,-x86,-mips
-repo sync -j4
+repo init -u $MANIFEST -b $MANIFEST_BRANCH
+repo sync -j8 --force-sync --no-clone-bundle --no-tags
 
 tg --editmsg "$CHAT_ID" "$SENT_MSG_ID" "${MSG_TITLE}Progress: --% (Cloning device tree)"
-git clone --depth=1 --single-branch "$DT_LINK" -b "$DT_BRANCH" "$DT_PATH"
+git clone --depth=1 "$DT_LINK" -b "$DT_BRANCH" "$DT_PATH"
 
 updateProg() {
 	BUILD_PROGRESS=$(
@@ -60,7 +60,7 @@ tg --editmsg "$CHAT_ID" "$SENT_MSG_ID" "${MSG_TITLE}Progress: --% (Build system 
 export RMX2151_BUILD=true
 source build/envsetup.sh || fail
 lunch "omni_$DEVICE-eng" || fail
-mka pbrp 2>&1 | tee "build_$DEVICE.log" || fail &
+make -j8 pbrp 2>&1 | tee "build_$DEVICE.log" || fail &
 
 until [ -z "$(jobs -r)" ]; do
 	updateProg
