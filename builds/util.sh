@@ -31,23 +31,23 @@ tg() {
 		local MSG_ID=$2
 		local NEW_TEXT=$3
 		if [[ $PARAM =~ "--editmarkdownv2msg" ]]; then
-			curl -s "$API/editMessageText" -d "chat_id=$CHAT_ID" -d "message_id=$MSG_ID" -d "text=$NEW_TEXT" -d "parse_mode=MarkdownV2" | jq .
+			curl -s "$API/editMessageText" -d "chat_id=$CHAT_ID" -d "message_id=$MSG_ID" -d "text=$NEW_TEXT" -d "parse_mode=MarkdownV2" -d "disable_web_page_preview=true" | jq .
 		else
-			curl -s "$API/editMessageText" -d "chat_id=$CHAT_ID" -d "message_id=$MSG_ID" -d "text=$NEW_TEXT" | jq .
+			curl -s "$API/editMessageText" -d "chat_id=$CHAT_ID" -d "message_id=$MSG_ID" -d "text=$NEW_TEXT" -d "disable_web_page_preview=true" | jq .
 		fi
 		;;
 	--sendmsg)
 		shift
 		local CHAT_ID=$1
 		local MSG=$2
-		local RESULT=$(curl -s "$API/sendMessage" -d "chat_id=$CHAT_ID" -d "text=$MSG")
+		local RESULT=$(curl -s "$API/sendMessage" -d "chat_id=$CHAT_ID" -d "text=$MSG" -d "disable_web_page_preview=true")
 		SENT_MSG_ID=$(echo "$RESULT" | jq '.result | .message_id')
 		;;
 	--sendmarkdownv2msg)
 		shift
 		local CHAT_ID=$1
 		local MSG=$2
-		local RESULT=$(curl -s "$API/sendMessage" -d "chat_id=$CHAT_ID" -d "parse_mode=MarkdownV2" -d "text=$MSG")
+		local RESULT=$(curl -s "$API/sendMessage" -d "chat_id=$CHAT_ID" -d "parse_mode=MarkdownV2" -d "text=$MSG" -d "disable_web_page_preview=True")
 		SENT_MSG_ID=$(echo "$RESULT" | jq '.result | .message_id')
 		;;
 	--replymsg)
