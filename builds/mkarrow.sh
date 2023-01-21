@@ -1,8 +1,9 @@
 #!/bin/bash
 DEVICE=RM6785
-BINPATH=$HOME/github-repo/mybot/telegram-bot-bash/bin
+source "$HOME/.token.sh"
+source "$HOME/github-repo/telegram-bash-bot/util.sh"
 CHID=-1001664444944
-ROOT=/mnt/arrow
+ROOT=$HOME/arrow
 if [[ $1 == gapps ]]; then
     export ARROW_GAPPS=true
     GAPPS_INSERT="(GAPPS)"
@@ -12,16 +13,11 @@ if [[ "$*" =~ "--sync" ]]; then
 elif [[ "$*" =~ "--fsync" ]]; then
     NEED_FSYNC=true
 fi
-MSGTOEDITID=$(
-    "$BINPATH/send_message.sh" \
-        "$CHID" \
-        "Building arrow for $DEVICE $GAPPS_INSERT\nProgress: --% (Updating device tree)" \
-        | grep 'ID' \
-        | cut -d] -f2 \
-        | tr -d '[:space:]' \
-        | sed 's/"//g'
-)
 
+tg --sendmsg \
+    "$CHID" \
+    "Building arrow for $DEVICE $GAPPS_INSERT
+Progress: --% (Updating device tree)"
 
 progress() {
     BUILD_PROGRESS=$(
@@ -32,7 +28,7 @@ progress() {
     )
     [ "$BUILD_PROGRESS" ] && NEED_EDIT=true
     if [[ -z $(jobs -r) && ! $BUILD_PROGRESS =~ "100%" ]]; then
-        fail "Build failed"
+        fail "Build failed, error log: $(cat "$ROOT/out/error.log" | nc termbin.com 9999)"
     fi
 }
 
@@ -42,17 +38,19 @@ editmsg() {
     [[ "$*" =~ "--cust-prog" ]] && local cust_prog=true
     if [[ $edit_prog == true ]]; then
         if [[ $NEED_EDIT == true ]]; then
-            "$BINPATH/edit_message.sh" "$CHID" \
-                "$MSGTOEDITID" \
-                "Building arrow for $DEVICE $GAPPS_INSERT\nProgress: $BUILD_PROGRESS"
+            tg --editmsg "$CHID" \
+                "$SENT_MSG_ID" \
+                "Building arrow for $DEVICE $GAPPS_INSERT
+Progress: $BUILD_PROGRESS"
         fi
     elif [[ $cust_prog == true ]]; then
-        "$BINPATH/edit_message.sh" "$CHID" \
-            "$MSGTOEDITID" \
-            "Building arrow for $DEVICE $GAPPS_INSERT\nprogress: $1"
+        tg --editmsg "$CHID" \
+            "$SENT_MSG_ID" \
+            "Building arrow for $DEVICE $GAPPS_INSERT
+progress: $1"
     elif [[ $no_proginsert == true ]]; then
-        "$BINPATH/edit_message.sh" "$CHID" \
-            "$MSGTOEDITID" \
+        tg --editmsg "$CHID" \
+            "$SENT_MSG_ID" \
             "$1"
     fi
 }
@@ -68,6 +66,7 @@ inttrap() {
     # Wait for the job to exit by sigint
     editmsg "Build failed, SIGINT received" --cust-prog
     wait
+    unlock
     exit
 }
 
@@ -100,14 +99,14 @@ rm -f $ROOT/out/target/product/$DEVICE/*.zip
 editmsg "--% (Initialising build system)" --cust-prog
 source build/envsetup.sh
 build_start=$(date +%s)
-lunch "arrow_$DEVICE-eng"
+lunch "arrow_$DEVICE-userdebug"
 m bacon 2>&1 | tee "$HOME/build_$DEVICE.log" || readonly build_failed=true &
 
 
 until [ -z "$(jobs -r)" ]; do
     progress
     editmsg --edit-prog
-    sleep 7
+    sleep 5
 done
 
 progress
@@ -120,19 +119,14 @@ build_time="$((build_diff / 3600)) hour and $(($((build_diff / 60)) % 60)) minut
 sleep 2
 editmsg "Build finished in $build_time"
 
-MSGTOEDITID=$(
-    "$BINPATH/send_message.sh" \
-        "$CHID" \
-        "Uploading zip" \
-        | grep 'ID' \
-        | cut -d] -f2 \
-        | tr -d '[:space:]' \
-        | sed 's/"//g'
-)
+tg --sendmsg \
+    "$CHID" \
+    "Uploading zip"
 link=$(transfer wet --silent $ROOT/out/target/product/$DEVICE/*.zip)
 # transfer wet /home/azureuser/pbrp/pbrp/out/target/product/RMX2151/PBRP-RMX2151-3.1.0-20220207-0422-UNOFFICIAL.zip 2>&1 | grep 'we.tl' | cut -d: -f3
 # //we.tl/t-UcrCXiVVnP
-editmsg "Done\nDownload link: $link" --no-proginsert
+tg --editmsg "$CHID" "$SENT_MSG_ID" "Done
+Download link: $link"
 
 # Remove the lock
 unlock
