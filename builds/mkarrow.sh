@@ -117,16 +117,25 @@ build_diff=$((build_end - build_start))
 build_time="$((build_diff / 3600)) hour and $(($((build_diff / 60)) % 60)) minutes"
 
 sleep 2
-editmsg "Build finished in $build_time"
+editmsg "$BUILD_PROGRESS
+Build finished in $build_time" --cust-prog
 
 tg --sendmsg \
     "$CHID" \
     "Uploading zip"
-link=$(transfer wet --silent $ROOT/out/target/product/$DEVICE/*.zip)
+
+if [ "$ARROW_GAPPS" = true ]; then
+    fname=$(find $ROOT/out/target/product/$DEVICE -iname '*.zip' | grep -v eng | grep GAPPS)
+else
+    fname=$(find $ROOT/out/target/product/$DEVICE -iname '*.zip' | grep -v eng | grep VANILLA)
+fi
+
+link=$(transfer wet --silent "$fname")
 # transfer wet /home/azureuser/pbrp/pbrp/out/target/product/RMX2151/PBRP-RMX2151-3.1.0-20220207-0422-UNOFFICIAL.zip 2>&1 | grep 'we.tl' | cut -d: -f3
 # //we.tl/t-UcrCXiVVnP
 tg --editmsg "$CHID" "$SENT_MSG_ID" "Done
-Download link: $link"
+Download link: $link
+MD5: $(cat "$fname.md5sum")"
 
 # Remove the lock
 unlock
