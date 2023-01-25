@@ -17,7 +17,7 @@ fi
 tg --sendmsg \
     "$CHID" \
     "Building arrow for $DEVICE $GAPPS_INSERT
-Progress: --% (Updating device tree)"
+Progress: --% (Updating device tree)" >/dev/null
 
 progress() {
     BUILD_PROGRESS=$(
@@ -41,17 +41,17 @@ editmsg() {
             tg --editmsg "$CHID" \
                 "$SENT_MSG_ID" \
                 "Building arrow for $DEVICE $GAPPS_INSERT
-Progress: $BUILD_PROGRESS"
+Progress: $BUILD_PROGRESS" >/dev/null
         fi
     elif [[ $cust_prog == true ]]; then
         tg --editmsg "$CHID" \
             "$SENT_MSG_ID" \
             "Building arrow for $DEVICE $GAPPS_INSERT
-progress: $1"
+progress: $1" >/dev/null
     elif [[ $no_proginsert == true ]]; then
         tg --editmsg "$CHID" \
             "$SENT_MSG_ID" \
-            "$1"
+            "$1" >/dev/null
     fi
 }
 
@@ -122,7 +122,7 @@ Build finished in $build_time" --cust-prog
 
 tg --sendmsg \
     "$CHID" \
-    "Uploading zip"
+    "Uploading zip" >/dev/null
 
 if [ "$ARROW_GAPPS" = true ]; then
     fname=$(find $ROOT/out/target/product/$DEVICE -iname '*.zip' | grep -v eng | grep GAPPS)
@@ -135,7 +135,7 @@ link=$(transfer wet --silent "$fname")
 # //we.tl/t-UcrCXiVVnP
 tg --editmsg "$CHID" "$SENT_MSG_ID" "Done
 Download link: $link
-MD5: $(cat "$fname.md5sum")"
+MD5: $(cat "$fname.md5sum")" >/dev/null
 
 # Remove the lock
 unlock
