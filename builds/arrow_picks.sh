@@ -8,7 +8,7 @@ git fetch https://review.arrowos.net/ArrowOS/android_frameworks_av refs/changes/
 cd ../..
 
 # LineageOS Aperture
-rm -rf packages/apps/Camera2
+rm -rfv packages/apps/Camera2
 test -d packages/apps/Aperture || git clone https://github.com/LineageOS/android_packages_apps_Aperture packages/apps/Aperture
 cd packages/apps/Aperture
 git pull
