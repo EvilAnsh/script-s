@@ -93,8 +93,8 @@ elif [[ $NEED_FSYNC == true ]]; then
     repo sync --force-sync
 fi
 
-#editmsg "--% (Purging zips)" --cust-prog
-#rm -f $ROOT/out/target/product/$DEVICE/*.zip
+editmsg "--% (Purging zips)" --cust-prog
+rm -f $ROOT/out/target/product/$DEVICE/*.zip
 
 editmsg "--% (Initialising build system)" --cust-prog
 source build/envsetup.sh
