@@ -21,7 +21,7 @@ Progress: --% (Updating device tree)"
 
 progress() {
     BUILD_PROGRESS=$(
-            sed -n '/ ninja/,$p' "$HOME/build_$DEVICE.log" | \
+            sed -n '/Starting ninja/,$p' "$HOME/build_$DEVICE.log" | \
             grep -Po '\d+% \d+/\d+' | \
             tail -n1 | \
             sed -e 's/ / \(/' -e 's/$/)/'
