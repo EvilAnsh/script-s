@@ -17,6 +17,7 @@ function apply_patch {
 apply_patch frameworks/av https://github.com/ArrowOS/android_frameworks_av/commit/1fb1c48309cf01deb9e3f8253cb7fa5961c25595.patch
 # kernel: Add option to disable inline kernel building
 apply_patch vendor/arrow https://pastebin.com/raw/GnqV3Knb
+apply_patch frameworks/base https://github.com/realme-mt6785-devs/android_frameworks_base/commit/7d626a51c37bf40dcceeae0c52afc4b5fbf5203a.patch
 
 # LineageOS Aperture (added to local manifest)
 #rm -rfv packages/apps/Camera2
