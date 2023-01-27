@@ -18,7 +18,7 @@ apply_patch frameworks/av https://github.com/ArrowOS/android_frameworks_av/commi
 # kernel: Add option to disable inline kernel building
 apply_patch vendor/arrow https://pastebin.com/raw/GnqV3Knb
 
-# LineageOS Aperture
-rm -rfv packages/apps/Camera2
-test -d packages/apps/Aperture || git clone https://github.com/LineageOS/android_packages_apps_Aperture packages/apps/Aperture
-git -C packages/apps/Aperture pull
+# LineageOS Aperture (added to local manifest)
+#rm -rfv packages/apps/Camera2
+#test -d packages/apps/Aperture || git clone https://github.com/LineageOS/android_packages_apps_Aperture packages/apps/Aperture
+#git -C packages/apps/Aperture pull
