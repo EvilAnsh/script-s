@@ -7,12 +7,19 @@ ROOT=$HOME/arrow
 if [[ $1 == gapps ]]; then
     export ARROW_GAPPS=true
     GAPPS_INSERT="(GAPPS)"
+else
+    GAPPS_INSERT="(VANILLA)"
 fi
 if [[ "$*" =~ "--sync" ]]; then
     NEED_SYNC=true
 elif [[ "$*" =~ "--fsync" ]]; then
     NEED_FSYNC=true
 fi
+
+export PREBUILT_KERNEL=true
+export OVERRIDE_TARGET_FLATTEN_APEX=true
+export TARGET_RO_FILE_SYSTEM_TYPE=erofs
+export PRODUCT_DEFAULT_DEV_CERTIFICATE=/root/.android-certs
 
 tg --sendmsg \
     "$CHID" \
