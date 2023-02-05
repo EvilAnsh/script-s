@@ -24,7 +24,7 @@ apply_patch frameworks/av https://github.com/ArrowOS/android_frameworks_av/commi
 apply_patch vendor/arrow https://pastebin.com/raw/GnqV3Knb
 
 # Fix brightness slider curve for some devices
-apply_patch frameworks/base https://github.com/realme-mt6785-devs/android_frameworks_base/commit/7d626a51c37bf40dcceeae0c52afc4b5fbf5203a.patch
+#apply_patch frameworks/base https://github.com/realme-mt6785-devs/android_frameworks_base/commit/7d626a51c37bf40dcceeae0c52afc4b5fbf5203a.patch
 
 # Add bluetooth and sdk_sandbox to default key map
 apply_patch build https://github.com/LineageOS/android_build/commit/483f3cf277485c9eaeaf5e025836ea0271574a63.patch use_patch
