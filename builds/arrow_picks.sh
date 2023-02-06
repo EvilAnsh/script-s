@@ -29,6 +29,9 @@ apply_patch vendor/arrow https://pastebin.com/raw/GnqV3Knb
 # Add bluetooth and sdk_sandbox to default key map
 apply_patch build https://github.com/LineageOS/android_build/commit/483f3cf277485c9eaeaf5e025836ea0271574a63.patch use_patch
 
+# fixup! bluetooth: abandon app local certificate
+apply_patch packages/modules/Bluetooth https://github.com/LineageOS/android_packages_modules_Bluetooth/commit/5d2632ad83e4566064f3d3fbd6af5b60fa00b71c.patch
+
 
 # LineageOS Aperture (added to local manifest)
 #rm -rfv packages/apps/Camera2
