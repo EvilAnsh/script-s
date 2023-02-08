@@ -3,6 +3,17 @@ DEVICE=RM6785
 source "$HOME/.token.sh"
 source "$HOME/github-repo/telegram-bash-bot/util.sh"
 CHID=-1001664444944
+
+# Since we will be using this script after changing
+# working directory to $ROOT, simply using
+# `bash $(dirname "$0")/arrow_picks.sh` will fail
+if [ -f "$(pwd)/arrow_picks.sh" ]; then
+    PICKS_SCRIPT=$(pwd)/arrow_picks.sh
+elif [ "$(dirname "$0")" != "." ] &&
+     [ -f "$(dirname "$0")/arrow_picks.sh" ]; then
+    PICKS_SCRIPT=$(dirname "$0")/arrow_picks.sh
+fi
+
 ROOT=$HOME/arrow
 if [[ $1 == gapps ]]; then
     export ARROW_GAPPS=true
@@ -78,7 +89,7 @@ inttrap() {
 }
 
 # Check if there's a build in progress
-source utils.sh
+source "$(dirname "$0")/utils.sh"
 check_lock
 
 # Prevent the script from running multiple times
@@ -94,11 +105,13 @@ cd "$ROOT" || exit 1
 
 if [[ $NEED_SYNC == true ]]; then
     editmsg "--% (Syncing with repo sync)" --cust-prog
-    repo sync
+    repo sync -j9 --optimized-fetch
 elif [[ $NEED_FSYNC == true ]]; then
     editmsg "--% (Syncing with repo sync --force-sync)" --cust-prog
-    repo sync --force-sync
+    repo sync -j9 --optimized-fetch --force-sync
 fi
+
+bash "$PICKS_SCRIPT"
 
 editmsg "--% (Purging zips)" --cust-prog
 rm -f $ROOT/out/target/product/$DEVICE/*.zip
