@@ -29,8 +29,8 @@ fi
 
 export PREBUILT_KERNEL=true
 export OVERRIDE_TARGET_FLATTEN_APEX=true
-export TARGET_RO_FILE_SYSTEM_TYPE=erofs
-export PRODUCT_DEFAULT_DEV_CERTIFICATE=/root/.android-certs
+#export TARGET_RO_FILE_SYSTEM_TYPE=erofs
+#export PRODUCT_DEFAULT_DEV_CERTIFICATE=/root/.android-certs
 
 tg --sendmsg \
     "$CHID" \
@@ -98,10 +98,10 @@ lock
 trap inttrap SIGINT
 
 cd "$ROOT" || exit 1
-cd "device/realme/$DEVICE" || exit 1
-git pull --rebase || git rebase --abort; git pull || git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
+#cd "device/realme/$DEVICE" || exit 1
+#git pull --rebase || git rebase --abort; git pull || git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
 
-cd "$ROOT" || exit 1
+#cd "$ROOT" || exit 1
 
 if [[ $NEED_SYNC == true ]]; then
     editmsg "--% (Syncing with repo sync)" --cust-prog
