@@ -4,6 +4,10 @@ source "$HOME/.token.sh"
 source "$HOME/github-repo/telegram-bash-bot/util.sh"
 CHID=-1001664444944
 
+sudo apt-get -y install rclone jq
+curl -s https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/setup | bash
+ksau setup
+
 # Since we will be using this script after changing
 # working directory to $ROOT, simply using
 # `bash $(dirname "$0")/arrow_picks.sh` will fail
@@ -150,12 +154,12 @@ else
     fname=$(find $ROOT/out/target/product/$DEVICE -iname '*.zip' | grep -v eng | grep VANILLA)
 fi
 
-link=$(transfer wet --silent "$fname")
+link=$(ksau -q upload "$fname" hakimi/arrow)
 # transfer wet /home/azureuser/pbrp/pbrp/out/target/product/RMX2151/PBRP-RMX2151-3.1.0-20220207-0422-UNOFFICIAL.zip 2>&1 | grep 'we.tl' | cut -d: -f3
 # //we.tl/t-UcrCXiVVnP
 tg --editmsg "$CHID" "$SENT_MSG_ID" "Done
 Download link: $link
-MD5: $(cat "$fname.md5sum")" >/dev/null
+MD5: $(cat "$fname.md5sum" | cut -d' ' -f1)" >/dev/null
 
 # Remove the lock
 unlock
