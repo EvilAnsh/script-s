@@ -9,28 +9,21 @@ source util.sh # make sure TOKEN is exported
 
 # Constants
 KSAU_UPLOAD_FOLDER=hakimi
-RM6785_TESTING_GROUPID=-1001299514785
-CHANNEL_CHAT_ID=-1001664444944
-MANIFEST="https://github.com/PitchBlackRecoveryProject/manifest_pb.git"
-MANIFEST_BRANCH="android-12.1"
-DEVICE="RMX2001"
-DT_LINK="https://github.com/PitchBlackRecoveryProject/android_device_realme_RMX2001-pbrp"
-DT_BRANCH="android-12.1"
-DT_PATH="device/realme/RMX2001"
+CHANNEL_CHAT_ID=-1001363413558
+MANIFEST="https://github.com/RisingTechOSS/android"
+MANIFEST_BRANCH="fourteen"
+DEVICE="RM6785"
+LM_LINK="https://github.com/EvilAnsh/Local-Manifest"
+LM_BRANCH="rising"
+LM_PATH=".repo/local_manifests"
 n=$'\n' # syntax looks weird, because it's mostly unknown
 
-# second device
-DEVICER7="RMX2151"
-DT_LINKR7="https://github.com/PitchBlackRecoveryProject/android_device_realme_RMX2151-pbrp"
-DT_BRANCHR7="android-12.1"
-DT_PATHR7="device/realme/RMX2151"
-
 MSG_TITLE=(
-    $'Building recovery for realme 6/RM6785\n'
+    $'Building ROM for RM6785\n'
 )
 
-git config --global user.email "hakimifirdaus944@gmail.com"
-git config --global user.name "Firdaus Hakimi"
+git config --global user.email "singhansh64321@gmail.com"
+git config --global user.name "Ansh"
 
 command -v ksau >/dev/null 2>&1 || curl -s https://raw.githubusercontent.com/ksauraj/global_index_source/master/setup | bash
 
@@ -64,10 +57,10 @@ fail() {
     exit 1
 }
 
-tg --sendmsg "$RM6785_TESTING_GROUPID" "PBRP Build started. View progress in https://t.me/Hakimi0804_SC" >/dev/null 2>&1
 tg --sendmsg "$CHANNEL_CHAT_ID" "${MSG_TITLE[*]}Progress: Syncing repo" >/dev/null 2>&1
 
 repo init --depth=1 -u "$MANIFEST" -b "$MANIFEST_BRANCH"
+[ -d "$LM_PATH" ] || git clone "$LM_LINK" --depth=1 --single-branch -b "$LM_BRANCH" "$LM_PATH"
 repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync "-j$(nproc --all)" &
 repo_sync_start=$(date +%s)
 until [ -z "$(jobs -r)" ]; do
@@ -84,13 +77,19 @@ edit_progress
 unset BUILD_PROGRESS
 MSG_TITLE+=("Repo sync took $repo_sync_time$n")
 
-[ -d "$DT_PATH" ] || git clone "$DT_LINK" --depth=1 --single-branch -b "$DT_BRANCH" "$DT_PATH"
 rm -f "build_$DEVICE.log"
 
-MSG_TITLE+=($'\nBuilding for RMX2001\n')
+MSG_TITLE+=($'\nBuilding for RM6785\n')
 . build/envsetup.sh && \
-    lunch "omni_$DEVICE-eng" && \
-    { make "-j$(nproc --all)" pbrp | tee -a "build_$DEVICE.log" || fail; } &
+    opt_patch && \
+    cd device/lineage/sepolicy && \
+    wget https://github.com/realme-mt6785-devs/android_device_lineage_sepolicy/commit/63529a7f2a7992cd50581d89489dd0a67be13c9c.patch && git am *.patch && \
+    cd - && \
+    cd packages/modules/Bluetooth && \
+    git fetch https://github.com/realme-mt6785-devs/android_packages_modules_Bluetooth && \
+    git cherry-pick be5b9270bcbc85b1caa2cf5421c712f048a37ec6 && \
+    lunch "rising_$DEVICE-user" && \
+    { ascend | tee -a "build_$DEVICE.log" || fail; } &
 
 until [ -z "$(jobs -r)" ]; do
     update_progress
@@ -101,37 +100,11 @@ done
 update_progress
 edit_progress
 file_link=$(ksau -r -q upload out/target/product/$DEVICE/*.zip "$KSAU_UPLOAD_FOLDER")
-echo "RMX2001 link: $file_link"
-MSG_TITLE+=("RMX2001 link: $file_link$n")
-
-
-
-
-## REALME 7/Narzo 20 Pro/Narzo 30 4G ##
-
-[ -d "$DT_PATHR7" ] || git clone "$DT_LINKR7" "$DT_PATHR7" --depth=1 --single-branch -b "$DT_BRANCHR7"
-
-DEVICE=$DEVICER7
-rm -f "build_$DEVICE.log"
-MSG_TITLE+=($'\nBuilding for salaa\n')
-. build/envsetup.sh && \
-    lunch "omni_$DEVICE-eng" && \
-    { make "-j$(nproc --all)" pbrp | tee -a build_$DEVICE.log || fail; } &
+echo "RM6785 link: $file_link"
+MSG_TITLE+=("RM6785 link: $file_link$n")
 
 until [ -z "$(jobs -r)" ]; do
     update_progress
     edit_progress
     sleep 5
 done
-
-update_progress
-edit_progress
-
-file_link=$(ksau -r -q upload out/target/product/$DEVICE/*.zip "$KSAU_UPLOAD_FOLDER")
-echo "salaa link: $file_link"
-MSG_TITLE+=("RMX2151 link: $file_link$n")
-BUILD_PROGRESS="Finished successfully"
-edit_progress
-
-nSENT_MSG_ID=$(tg --fwdmsg "$CHANNEL_CHAT_ID" "$RM6785_TESTING_GROUPID" "$SENT_MSG_ID" | jq .result.message_id)
-tg --pinmsg $RM6785_TESTING_GROUPID  "$nSENT_MSG_ID" >/dev/null 2>&1
