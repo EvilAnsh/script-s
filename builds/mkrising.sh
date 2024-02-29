@@ -8,7 +8,7 @@ curl -sL https://raw.githubusercontent.com/Hakimi0804/tgbot/main/util.sh -o util
 source util.sh # make sure TOKEN is exported
 
 # Constants
-KSAU_UPLOAD_FOLDER=hakimi
+KSAU_UPLOAD_FOLDER=EvilAnsh/rising_RM6785
 CHANNEL_CHAT_ID=-1001363413558
 MANIFEST="https://github.com/RisingTechOSS/android"
 MANIFEST_BRANCH="fourteen"
