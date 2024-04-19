@@ -1,33 +1,55 @@
 #!/bin/bash
-DEVICE=chan
-source "$HOME/.token.sh" || { echo "Unable to get token!" && exit 1; }
-source "$HOME/github-repo/telegram-bash-bot/util.logging.sh" || { echo "Unable to source telegram utils!" && exit 1; }
-source "$HOME/github-repo/telegram-bash-bot/util.sh" || { echo "Unable to source telegram utils!" && exit 1; }
+
+curl -sLo "$(dirname "$0")/util.logging.sh" https://raw.githubusercontent.com/ksauraj/telegram-bash-bot/master/util.logging.sh
+curl -sLo "$(dirname "$0")/util.sh" https://raw.githubusercontent.com/ksauraj/telegram-bash-bot/master/util.sh
+curl -sLo "$(dirname "$0")/utils.sh" https://raw.githubusercontent.com/Hakimi0804/scripts/main/builds/utils.sh
+
+source "$HOME/.token.sh" || { echo "warning: Unable to source token file"; }
+source "$(dirname "$0")/util.logging.sh" || { echo "Unable to source telegram utils!" && exit 1; }
+source "$(dirname "$0")/util.sh" || { echo "Unable to source telegram utils!" && exit 1; }
+
+
+#########################################################
+## This is the starting of the part you should care about
+#########################################################
+
+DEVICE=chan  # Not important for the build, but it is for Telegram message
 CHID=-1001664444944
 TMPDIR="$(mktemp -d)"
+ROOT=$HOME/builds/lineage
+TARGET="lineage_chan"
+KSAU_UPLOAD_FOLDER="hakimi/lineage_x3"
+REPOSYNC_THREAD_COUNT="$(nproc --all)"
+ROMNAME="lineage"  # Not important for the build, but it is for Telegram message
 
-sudo apt-get -y install rclone jq
-
-ROOT=$HOME/builds/crdroid
+# Arrow leftover - adapt for whatever ROM being built, or ignore
 if [[ $1 == gapps ]]; then
     export ARROW_GAPPS=true
     GAPPS_INSERT="(GAPPS)"
 else
     GAPPS_INSERT="(VANILLA)"
 fi
-if [[ "$*" =~ "--sync" ]]; then
+
+# Do not pass any of these if you don't want to repo sync
+if [[ "$*" =~ "--sync" ]]; then  # Regular sync
     NEED_SYNC=true
-elif [[ "$*" =~ "--fsync" ]]; then
+elif [[ "$*" =~ "--fsync" ]]; then  # Sync with --force-sync
     NEED_FSYNC=true
 fi
 
+# Build flavour
 if [ -z "$FLAVOUR" ]; then
   FLAVOUR=eng
 fi
+echo " ** Using flavour $FLAVOUR, to change please export FLAVOUR"
+
+#########################################################
+## This is the ending of the part you should care about
+#########################################################
 
 tg --sendmsg \
     "$CHID" \
-    "Building crdroid for $DEVICE $GAPPS_INSERT
+    "Building $ROMNAME for $DEVICE $GAPPS_INSERT
 Progress: --%" >/dev/null
 
 progress() {
@@ -48,14 +70,14 @@ editmsg() {
         if [[ $NEED_EDIT == true ]]; then
             tg --editmsg "$CHID" \
                 "$SENT_MSG_ID" \
-                "Building crdroid for $DEVICE $GAPPS_INSERT
+                "Building $ROMNAME for $DEVICE $GAPPS_INSERT
 ro tmate session: $(tmate display -p '#{tmate_ssh_ro}')
 Progress: $BUILD_PROGRESS" >/dev/null
         fi
     elif [[ $cust_prog == true ]]; then
         tg --editmsg "$CHID" \
             "$SENT_MSG_ID" \
-            "Building crdroid for $DEVICE $GAPPS_INSERT
+            "Building $ROMNAME for $DEVICE $GAPPS_INSERT
 ro tmate session: $(tmate display -p '#{tmate_ssh_ro}')
 Progress: $1" >/dev/null
     elif [[ $no_proginsert == true ]]; then
@@ -90,23 +112,19 @@ lock
 trap inttrap SIGINT
 
 cd "$ROOT" || exit 1
-#cd "device/realme/$DEVICE" || exit 1
-#git pull --rebase || git rebase --abort; git pull || git reset --hard HEAD~5; git pull || fail "Failed to update device tree"
-
-#cd "$ROOT" || exit 1
 
 if [[ $NEED_SYNC == true ]]; then
     editmsg "--% (Syncing with repo sync -j12 --optimized-fetch --auto-gc)" --cust-prog
-    repo sync -j12 --optimized-fetch --auto-gc
+    repo sync "-j$REPOSYNC_THREAD_COUNT" --optimized-fetch --auto-gc
 elif [[ $NEED_FSYNC == true ]]; then
     editmsg "--% (Syncing with repo sync -j12 --optimized-fetch --force-sync --auto-gc)" --cust-prog
-    repo sync -j12 --optimized-fetch --force-sync --auto-gc
+    repo sync "-j$REPOSYNC_THREAD_COUNT" --optimized-fetch --force-sync --auto-gc
 fi
 
 editmsg "--% (Initialising build system)" --cust-prog
 source build/envsetup.sh
 build_start=$(date +%s)
-lunch "lineage_$DEVICE-$FLAVOUR"
+lunch "$TARGET-$FLAVOUR"
 { m bacon 2>&1 | tee "$HOME/build_$DEVICE.log" || touch "$TMPDIR/build_failed_marker"; } &
 
 
@@ -124,6 +142,11 @@ fi
 progress
 editmsg --edit-prog
 
+if ! echo "$BUILD_PROGRESS" | grep -q "100%"; then
+    curl -s "https://api.telegram.org/bot$TOKEN/sendDocument" -F chat_id=$CHID -F document=@out/error.log
+    fail "Build failed"
+fi
+
 build_end=$(date +%s)
 build_diff=$((build_end - build_start))
 build_time="$((build_diff / 3600)) hour and $(($((build_diff / 60)) % 60)) minutes"
@@ -136,14 +159,12 @@ tg --sendmsg \
     "$CHID" \
     "Uploading zip" >/dev/null
 
-fname=$(find $ROOT/out/target/product/$DEVICE -iname '*.zip')
+fname=$(find $ROOT/out/target/product/$DEVICE -maxdepth 1 -iname '*.zip' | grep -v ota-eng)
 
-link=$(ksau -c hakimionedrive -q upload "$fname" hakimi/crdroid_x3)
-# transfer wet /home/azureuser/pbrp/pbrp/out/target/product/RMX2151/PBRP-RMX2151-3.1.0-20220207-0422-UNOFFICIAL.zip 2>&1 | grep 'we.tl' | cut -d: -f3
-# //we.tl/t-UcrCXiVVnP
+link=$(ksau -c hakimionedrive -q upload "$fname" "$KSAU_UPLOAD_FOLDER")
 tg --editmsg "$CHID" "$SENT_MSG_ID" "Done
 Download link: $link
-MD5: $(cat "$fname.md5sum" | cut -d' ' -f1)" >/dev/null
+SHA256SUM: $(cut -d' ' -f1 <"$fname.sha256sum")" >/dev/null
 
 # Remove the lock
 unlock
