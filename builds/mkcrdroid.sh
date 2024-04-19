@@ -13,18 +13,18 @@ source "$(dirname "$0")/util.sh" || { echo "Unable to source telegram utils!" &&
 ## This is the starting of the part you should care about
 #########################################################
 
-DEVICE=chan  # Not important for the build, but it is for Telegram message
-CHID=-1001664444944
+DEVICE=RM6785  # Not important for the build, but it is for Telegram message
+CHID=-1001363413558
 TMPDIR="$(mktemp -d)"
-ROOT=$HOME/builds/lineage
-TARGET="lineage_chan"
-KSAU_UPLOAD_FOLDER="hakimi/lineage_x3"
+ROOT=$HOME/rising
+TARGET="rising_RM6785"
+KSAU_UPLOAD_FOLDER="EvilAnsh/risingOSS"
 REPOSYNC_THREAD_COUNT="$(nproc --all)"
-ROMNAME="lineage"  # Not important for the build, but it is for Telegram message
+ROMNAME="risingOS"  # Not important for the build, but it is for Telegram message
 
 # Arrow leftover - adapt for whatever ROM being built, or ignore
 if [[ $1 == gapps ]]; then
-    export ARROW_GAPPS=true
+    export WITH_GMS=true
     GAPPS_INSERT="(GAPPS)"
 else
     GAPPS_INSERT="(VANILLA)"
@@ -32,14 +32,14 @@ fi
 
 # Do not pass any of these if you don't want to repo sync
 if [[ "$*" =~ "--sync" ]]; then  # Regular sync
-    NEED_SYNC=true
+    NEED_SYNC=false
 elif [[ "$*" =~ "--fsync" ]]; then  # Sync with --force-sync
-    NEED_FSYNC=true
+    NEED_FSYNC=false
 fi
 
 # Build flavour
 if [ -z "$FLAVOUR" ]; then
-  FLAVOUR=eng
+  FLAVOUR=user
 fi
 echo " ** Using flavour $FLAVOUR, to change please export FLAVOUR"
 
@@ -123,9 +123,10 @@ fi
 
 editmsg "--% (Initialising build system)" --cust-prog
 source build/envsetup.sh
+export ALLOW_MISSING_DEPENDENCIES=true
 build_start=$(date +%s)
-lunch "$TARGET-$FLAVOUR"
-{ m bacon 2>&1 | tee "$HOME/build_$DEVICE.log" || touch "$TMPDIR/build_failed_marker"; } &
+riseup "$DEVICE" "$FLAVOUR"
+{ rise b 2>&1 | tee "$HOME/build_$DEVICE.log" || touch "$TMPDIR/build_failed_marker"; } &
 
 
 until [ -z "$(jobs -r)" ]; do
